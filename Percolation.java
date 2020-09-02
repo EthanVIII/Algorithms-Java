@@ -1,56 +1,40 @@
-import javax.swing.text.rtf.RTFEditorKit;
 
 import edu.princeton.cs.algs4.*;
 
-public class Percolation{
+public class Percolation {
     int sideLen;
     boolean[] open;
     boolean[] full;
     WeightedQuickUnionUF grid;
+    int num;
     int top;
     int bot;
-    
 
     // creates n-by-n grid, with all sites initially blocked.
-    public Percolation(int n)
-    {
+    public Percolation(int n) {
         this.sideLen = n;
-        this.num = n*n;
-        this.open = new boolean[num + 2];
-        this.full = new boolean[num + 2];
-        this.grid = new WeightedQuickUnionUF(num + 2);
-
-        this.top = num;
-        this.open[top] = true;
-        this.bot = num + 1;
-        this.open[bot] = true;
-        for (int x = 0; x < n; x++)
-        {
+        this.num = n * n;
+        this.open = new boolean[num];
+        this.full = new boolean[num];
+        this.grid = new WeightedQuickUnionUF(num);
+        this.top = 0;    
+        this.bot = num-1;
+    
+        for (int x = 0; x < n; x++) {
             grid.union(x, top);
         }
 
-        for (int x = num-1; x > num - 5; x--)
-        {
-            grid.union(x, bot);
+        for (int x = num - 1; x > num - n - 1; x--) {
+            grid.union(x, bot );
         }
-        
 
-        for (int x = 0; x < num; x++)
-        {
+        for (int x = 0; x < num; x++) {
             this.open[x] = false;
         }
-
-        // ? Unsure if will need full?
-        // for (int x = 0; x < this.open.length; x++)
-        // {
-        //     this.full[x] = false;
-        // }
     }
 
-    public void testBounds(int row, int col)
-    {
-        if (row >= this.sideLen || col >= this.sideLen || row < 0 || col < 0)
-        {
+    public void testBounds(int row, int col) {
+        if (row > this.sideLen || col > this.sideLen || row < 0 || col < 0) {
             throw new IllegalArgumentException();
         }
     }
@@ -60,9 +44,36 @@ public class Percolation{
         row -= 1;
         col -= 1;
         testBounds(row, col);
-        int index = row * col;
+        int index = (row * sideLen) + col;
+
         if (!this.open[index]) {
             this.open[index] = true;
+
+            boolean topFlag = (row == 0);
+            boolean botFlag = (row == sideLen-1);
+            boolean rFlag = (col == sideLen-1);
+            boolean lFlag = (col == 0);
+
+            if (!topFlag) {
+                if (this.open[index - sideLen]) {
+                    grid.union(index, index - sideLen);
+                }
+            }
+            if (!botFlag) {
+                if (this.open[index + sideLen]) {
+                    grid.union(index, index + sideLen);
+                }
+            }
+            if (!rFlag) {
+                if (this.open[index + 1]) {
+                    grid.union(index, index + 1);
+                }
+            }
+            if (!lFlag) {
+                if (this.open[index - 1]) {
+                    grid.union(index, index - 1);
+                }
+            }
         }
     }
 
@@ -72,19 +83,18 @@ public class Percolation{
         row -= 1;
         col -= 1;
         testBounds(row, col);
-        int index = row * col;
+        int index = (row * sideLen) + col;
         return this.open[index];
     }
 
     // ? Unsure if needed.
     // is the site (row, col) full?
     public boolean isFull(int row, int col) {
-         row -= 1;
-         col -= 1;
+        row -= 1;
+        col -= 1;
         testBounds(row, col);
-        int index = row * col;
-        // return this.full[index];
-        return false;
+        int index = (row * sideLen) + col;
+        return this.grid.connected(this.top, index);
     }
 
     // returns the number of open sites
@@ -100,26 +110,37 @@ public class Percolation{
 
     // does the system percolate?
     public boolean percolates() {
-        connectOpens();
         return this.grid.connected(top, bot);
     }
 
-    // TODO connect all open elements.
-    // ! Prevent rolling over to the next row.
-    public void connectOpens() {
-        for (int x = 0; x < this.num; x++)
-        {
-            if (open[x])
-            {
-                // +sidelen, -sidelen, +1, -1
-                
+    public void printGrid() {
+        System.out.println("-----------------------------");
+        String constString = "";
+        for (int row = 0; row < sideLen; row++) {
+            for (int col = 0; col < sideLen; col++) {
+                if (open[col + (row * sideLen)]) {
+                    constString += "+ ";
+                } else {
+                    constString += "0 ";
+                }
             }
+            System.out.println(constString);
+            constString = "";
         }
+        System.out.println("-----------------------------");
     }
 
     public static void main(String[] args) {
-        Percolation test1 = new Percolation(3);
-        System.out.println("(Done Nothing): Connected?: " + test1.percolates());
-        
+        Percolation test1 = new Percolation(10);
+        System.out.println(test1.grid.count());
+        System.out.println(test1.percolates());
+        for (int x = 1; x <= 10; x++) {
+            test1.open(x, 1);
+        }
+        test1.printGrid();
+        System.out.println(test1.percolates());
+        System.out.println(test1.grid.count());
+
     }
+
 }
