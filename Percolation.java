@@ -1,21 +1,19 @@
 
-import edu.princeton.cs.algs4.*;
+import edu.princeton.cs.algs4.WeightedQuickUnionUF;
 
 public class Percolation {
-    int sideLen;
-    boolean[] open;
-    boolean[] full;
-    WeightedQuickUnionUF grid;
-    int num;
-    int top;
-    int bot;
+    private int sideLen;
+    private boolean[] open;
+    private WeightedQuickUnionUF grid;
+    private int num;
+    private int top;
+    private int bot;
 
     // creates n-by-n grid, with all sites initially blocked.
     public Percolation(int n) {
         this.sideLen = n;
         this.num = n * n;
         this.open = new boolean[num];
-        this.full = new boolean[num];
         this.grid = new WeightedQuickUnionUF(num);
         this.top = 0;    
         this.bot = num-1;
@@ -33,7 +31,7 @@ public class Percolation {
         }
     }
 
-    public void testBounds(int row, int col) {
+    private void testBounds(int row, int col) {
         if (row > this.sideLen || col > this.sideLen || row < 0 || col < 0) {
             throw new IllegalArgumentException();
         }
@@ -87,14 +85,13 @@ public class Percolation {
         return this.open[index];
     }
 
-    // ? Unsure if needed.
     // is the site (row, col) full?
     public boolean isFull(int row, int col) {
         row -= 1;
         col -= 1;
         testBounds(row, col);
         int index = (row * sideLen) + col;
-        return this.grid.connected(this.top, index);
+        return (((Integer) this.grid.find(top)).equals(this.grid.find(index)) && open[index]);
     }
 
     // returns the number of open sites
@@ -110,10 +107,11 @@ public class Percolation {
 
     // does the system percolate?
     public boolean percolates() {
-        return this.grid.connected(top, bot);
+        return ((Integer) this.grid.find(top)).equals(this.grid.find(bot));
+        
     }
 
-    public void printGrid() {
+    private void printGrid() {
         System.out.println("-----------------------------");
         String constString = "";
         for (int row = 0; row < sideLen; row++) {
@@ -139,8 +137,12 @@ public class Percolation {
         }
         test1.printGrid();
         System.out.println(test1.percolates());
-        System.out.println(test1.grid.count());
-
+        System.out.println(test1.isFull(1, 1));
+        System.out.println(test1.isFull(5, 5));
+        test1.open(5,5);
+        test1.printGrid();
+        System.out.println(test1.isFull(5, 1));
+        test1.testBounds(1, 5);
     }
 
 }
